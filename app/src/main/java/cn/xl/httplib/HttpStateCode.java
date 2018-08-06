@@ -31,4 +31,9 @@ public class HttpStateCode {
      */
     public static final int ERROR_SUBSCRIBE_ERROR = 1004;
 
+    /**
+     * path为空
+     */
+    public static final int ERROR_PATH_EMPTY = 1005;
+
 }

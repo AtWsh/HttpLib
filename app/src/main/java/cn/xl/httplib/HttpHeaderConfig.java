@@ -51,6 +51,15 @@ public class HttpHeaderConfig {
         return mHeaders;
     }
 
+    /**
+     * 如果不需要init里面的数据，就clear
+     */
+    public void clear() {
+        if (mHeaders != null) {
+            mHeaders.clear();
+        }
+    }
+
     public int getConnectTimeout() {
         if (mUserConnectTimeout <= 0){
             return CONNECT_TIME_OUT_DEFAULT;

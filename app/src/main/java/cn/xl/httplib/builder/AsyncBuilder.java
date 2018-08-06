@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import cn.xl.httplib.HttpCallBack;
 import cn.xl.httplib.HttpClient;
 import cn.xl.httplib.HttpHeaderConfig;
@@ -25,14 +26,16 @@ public abstract class AsyncBuilder<T> {
 
     protected Map<String, String> mHttpParams;
     protected Map<String, String> mHttpHeader;
+    protected String mStrHeader;
 
 
     protected abstract String getPath();
     protected abstract String getUrl();
     protected abstract @HttpMethod.IMethed String getMethod();
     private int mTagHash;
-    private HttpHeaderConfig mHeaderConfig;
+    private HttpHeaderConfig mDefaultHeaderConfig;
     private JSONObject mJsonObject;
+    private Object mBodyObj;
 
     /**
      * 如果要绑定生命周期，界面销毁时取消请求，
@@ -56,6 +59,13 @@ public abstract class AsyncBuilder<T> {
         return this;
     }
 
+    public AsyncBuilder<T> addBodyObj(Object bodyObj){
+        mBodyObj = bodyObj;
+        mJsonObject = null;
+        return this;
+    }
+
+
     public AsyncBuilder<T> addBodyMap(Map<String, String> mapValue){
         if(mapValue == null && mapValue.size() <= 0){
             Log.d(TAG, "Error! input param mapValue = " + mapValue);
@@ -75,16 +85,18 @@ public abstract class AsyncBuilder<T> {
             }
         }
 
+        mBodyObj = mJsonObject;
         return this;
     }
 
     /**
-     * 设置HeaderConfig
+     * 重置全局默认Header
+     * 一般不需要重置，如果Header初始东西不一样，就重置吧
      * @param headerConfig
      * @return
      */
-    public AsyncBuilder<T> setHeaderConfig(HttpHeaderConfig headerConfig) {
-        mHeaderConfig = headerConfig;
+    public AsyncBuilder<T> resetDefaultHeaderConfig(HttpHeaderConfig headerConfig) {
+        mDefaultHeaderConfig = headerConfig;
         return this;
     }
 
@@ -95,6 +107,32 @@ public abstract class AsyncBuilder<T> {
      */
     public AsyncBuilder<T> addHeader(Map<String, String> mapValue){
         mHttpHeader = mapValue;
+        mStrHeader = null;
+        return this;
+    }
+
+    /**
+     *
+     * @param strHeader
+     * @return
+     */
+    public AsyncBuilder<T> addHeader(String strHeader){
+        mStrHeader = strHeader;
+        mHttpHeader = null;
+        return this;
+    }
+
+    /**
+     *
+     * @param objHeader
+     * @return
+     */
+    public AsyncBuilder<T> addHeader(Object objHeader){
+        if (objHeader == null) {
+            return this;
+        }
+        mStrHeader = objHeader.toString();
+        mHttpHeader = null;
         return this;
     }
 
@@ -140,8 +178,7 @@ public abstract class AsyncBuilder<T> {
 
     protected void fromJson(boolean onUiCallBack, final HttpCallBack<T> callback){
 
-        getHttpClient();
-        HttpClient client = HttpClient.getInstance().init(getUrl());
+        HttpClient client = getHttpClient();
         if (client == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
@@ -149,53 +186,83 @@ public abstract class AsyncBuilder<T> {
         callback.onStart();
         switch (getMethod()){
             case HttpMethod.POST:
-                if(getPath() != null) {
-                    if(getParams() != null){
-                        if(mJsonObject != null){
-                            client.post(getPath(), getParams(), mJsonObject, getTagHash(), onUiCallBack, callback);
-                        } else {
-                            client.post(getPath(), getParams(), getTagHash(), onUiCallBack, callback);
-                        }
-                    } else {
-                        if(mJsonObject != null){
-                            client.post(getPath(), mJsonObject, getTagHash(), onUiCallBack, callback);
-                        } else {
-                            // do nothing;
-                        }
-                    }
-                } else {
-//                    client.post(getParams(), completion);
-                }
+                processPostQuest(client, onUiCallBack, callback);
                 break;
             case HttpMethod.GET:
-                if(!TextUtils.isEmpty(getPath())) {
-                    if(getParams() != null){
-                        if(mHttpHeader != null){
-                            client.get(getPath(), mHttpHeader, getParams(), getTagHash(), onUiCallBack, callback);
-                        } else {
-                            client.get(getPath(), new HashMap<String, String>(), getParams(), getTagHash(), onUiCallBack, callback);
-                        }
-                    } else {
-                        if(mHttpHeader != null){
-                            client.get(getPath(), mHttpHeader, new HashMap<String, String>(), getTagHash(), onUiCallBack, callback);
-                        } else {
-                            client.get(getPath(), new HashMap<String, String>(), new HashMap<String, String>(), getTagHash(), onUiCallBack, callback);
-                        }
-                    }
-
-                } else {
-                    callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
-                }
+                processGetQuest(client, onUiCallBack, callback);
                 break;
         }
     }
 
+    private void processPostQuest(HttpClient client, boolean onUiCallBack, HttpCallBack<T> callback) {
+        boolean isPathEmpty = TextUtils.isEmpty(getPath());
+        boolean paramsEmpty = getParams() == null;
+        boolean bodyObEmpty = mBodyObj == null;
+        boolean strHeaderEmpty = TextUtils.isEmpty(mStrHeader);
+        boolean mapHeaderEmpty = (mHttpHeader == null || mHttpHeader.size() <= 0);
+        if (isPathEmpty) {
+            callback.onResult(HttpStateCode.ERROR_PATH_EMPTY, null);
+            return;
+        }
+
+        if (paramsEmpty && bodyObEmpty && strHeaderEmpty && mapHeaderEmpty) {
+            client.post(getPath(), getTagHash(), onUiCallBack, callback);
+        }else if (!paramsEmpty && bodyObEmpty && strHeaderEmpty && mapHeaderEmpty) {
+            client.postWithParamsMap(getPath(), getParams(), getTagHash(), onUiCallBack, callback);
+        }else if(paramsEmpty && !bodyObEmpty && strHeaderEmpty && mapHeaderEmpty){
+            client.post(getPath(), mBodyObj, getTagHash(), onUiCallBack, callback);
+        }else if(paramsEmpty && bodyObEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            client.post(getPath(), mStrHeader, getTagHash(), onUiCallBack, callback);
+        }else if(paramsEmpty && bodyObEmpty && strHeaderEmpty && !mapHeaderEmpty){
+            client.postWithHeaderMap(getPath(), mHttpHeader, getTagHash(), onUiCallBack, callback);
+        }else if(!paramsEmpty && !bodyObEmpty && strHeaderEmpty && mapHeaderEmpty){
+            client.post(getPath(), getParams(), mBodyObj, getTagHash(), onUiCallBack, callback);
+        }else if(!paramsEmpty && bodyObEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            client.post(getPath(), getParams(), mStrHeader, getTagHash(), onUiCallBack, callback);
+        }else if(!paramsEmpty && bodyObEmpty && strHeaderEmpty && !mapHeaderEmpty){
+            client.post(getPath(), getParams(), mHttpHeader, getTagHash(), onUiCallBack, callback);
+        }else if(paramsEmpty && !bodyObEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            client.post(getPath(), mStrHeader, mBodyObj, getTagHash(), onUiCallBack, callback);
+        }else if(paramsEmpty && bodyObEmpty && !strHeaderEmpty && !mapHeaderEmpty){
+            client.post(getPath(), mHttpHeader, mBodyObj, getTagHash(), onUiCallBack, callback);
+        }else if(!paramsEmpty && !bodyObEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            client.post(getPath(), getParams(), mStrHeader, mBodyObj, getTagHash(), onUiCallBack, callback);
+        }else if(!paramsEmpty && !bodyObEmpty && strHeaderEmpty && !mapHeaderEmpty){
+            client.post(getPath(), getParams(), mHttpHeader, mBodyObj, getTagHash(), onUiCallBack, callback);
+        }
+    }
+
+    private void processGetQuest(HttpClient client, boolean onUiCallBack, HttpCallBack<T> callback) {
+        boolean isPathEmpty = TextUtils.isEmpty(getPath());
+        boolean paramsEmpty = getParams() == null;
+        boolean strHeaderEmpty = TextUtils.isEmpty(mStrHeader);
+        boolean mapHeaderEmpty = (mHttpHeader == null || mHttpHeader.size() <= 0);
+        if (isPathEmpty) {
+            callback.onResult(HttpStateCode.ERROR_PATH_EMPTY, null);
+            return;
+        }
+
+        if (paramsEmpty && strHeaderEmpty && mapHeaderEmpty) {
+            client.get(getPath(), getTagHash(), onUiCallBack, callback);
+        }else if (!paramsEmpty && strHeaderEmpty && mapHeaderEmpty) {
+            client.getWithParamsMap(getPath(), getParams(), getTagHash(), onUiCallBack, callback);
+        }else if(paramsEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            client.get(getPath(), mStrHeader, getTagHash(), onUiCallBack, callback);
+        }else if(paramsEmpty && strHeaderEmpty && !mapHeaderEmpty){
+            client.getWithHeaderMap(getPath(), mHttpHeader, getTagHash(), onUiCallBack, callback);
+        }else if(!paramsEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            client.post(getPath(), getParams(), mStrHeader, getTagHash(), onUiCallBack, callback);
+        }else if(!paramsEmpty && strHeaderEmpty && !mapHeaderEmpty){
+            client.post(getPath(), getParams(), mHttpHeader, getTagHash(), onUiCallBack, callback);
+        }
+    }
+
     private HttpClient getHttpClient() {
-        if (mHeaderConfig == null) {
+        if (mDefaultHeaderConfig == null) {
             return HttpClient.getInstance().init(getUrl());
         }
 
-        return HttpClient.getInstance().init(getUrl(), mHeaderConfig);
+        return HttpClient.getInstance().init(getUrl(), mDefaultHeaderConfig);
     }
 
     private int getTagHash() {

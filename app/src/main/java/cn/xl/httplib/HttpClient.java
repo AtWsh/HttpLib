@@ -9,7 +9,6 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import org.json.JSONObject;
 
@@ -31,7 +30,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Interceptor;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -188,24 +186,53 @@ public class HttpClient<T> implements GenericLifecycleObserver {
         mRetrofitMap.put(key, retrofit);
     }
 
-    public void post(String path, Map<String, String> params, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+    public void post(String path, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         if (mCurrentServices == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
         }
-        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, params);
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path);
+        String disposableCacheKey = getDisposableCacheKey(path, null, null, null, null);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    public void postWithParamsMap(String path, Map<String, String> params, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.postWithParamsMap(path, params);
         String disposableCacheKey = getDisposableCacheKey(path, null, null, params, null);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
-    public void post(String path, JSONObject bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+    public void post(String path, Object bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         if (mCurrentServices == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
         }
-        RequestBody requestBody = getRequestBody(bodyJson);
-        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, requestBody);
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, bodyJson);
         String disposableCacheKey = getDisposableCacheKey(path, null,null, null, bodyJson);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    public void post(String path, String strHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, strHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, strHeader,null, null, null);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    public void postWithHeaderMap(String path, Map mapHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.postWithHeaderMap(path, mapHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, null, mapHeader, null, null);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
@@ -214,32 +241,72 @@ public class HttpClient<T> implements GenericLifecycleObserver {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
         }
-        RequestBody requestBody = getRequestBody(bodyJson);
-        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, params, requestBody);
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, params, bodyJson);
         String disposableCacheKey = getDisposableCacheKey(path, null, null, params, bodyJson);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
-    public void post(String path, String authHeader, JSONObject bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+    public void post(String path, Map<String, String> params, String strHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         if (mCurrentServices == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
         }
-
-        RequestBody requestBody = getRequestBody(bodyJson);
-        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, authHeader, requestBody);
-        String disposableCacheKey = getDisposableCacheKey(path, authHeader, null, null, bodyJson);
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, params, strHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, strHeader, null, params, null);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
-    public void post(String path, String authHeader, Map<String, String> params, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+    public void post(String path, Map<String, String> params, Map<String, String> mapHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, params, mapHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, null, mapHeader, params, null);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    public void post(String path, String strHeader, Object bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         if (mCurrentServices == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
         }
 
-        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, authHeader, params);
-        String disposableCacheKey = getDisposableCacheKey(path, authHeader, null, params, null);
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, bodyJson, strHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, strHeader, null, null, bodyJson);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    public void post(String path, Map<String, String> mapHeader, Object bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, bodyJson, mapHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, null, mapHeader, null, bodyJson);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    public void post(String path, Map<String, String> params, String strHeader, Object bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, params, bodyJson, strHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, strHeader, null, params, bodyJson);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    public void post(String path, Map<String, String> params, Map<String, String> mapHeader, Object bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.post(path, params, bodyJson, mapHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, null, mapHeader, params, bodyJson);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
@@ -258,6 +325,17 @@ public class HttpClient<T> implements GenericLifecycleObserver {
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
+    public void getWithParamsMap(String path, Map<String, String> params, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.getWithParamsMap(path, params);
+        String disposableCacheKey = getDisposableCacheKey(path, null, null, params, null);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
 
     public void get(String path, String authHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         if (mCurrentServices == null) {
@@ -271,28 +349,41 @@ public class HttpClient<T> implements GenericLifecycleObserver {
     }
 
 
-    public void get(String path, String authHeader, Map<String, String> params, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+    public void getWithHeaderMap(String path, Map<String, String> mapHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         if (mCurrentServices == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
         }
 
-        Observable<retrofit2.Response<String>> observable = mCurrentServices.get(path, authHeader, params);
-        String disposableCacheKey = getDisposableCacheKey(path, authHeader, null, params, null);
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.getWithHeaderMap(path, mapHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, null, mapHeader, null, null);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
-    public void get(String path, Map<String, String> authHeader, Map<String, String> params, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+    public void get(String path, Map<String, String> params, Map<String, String> authHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         if (mCurrentServices == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
         }
 
-        Observable<retrofit2.Response<String>> observable = mCurrentServices.get(path, authHeader, params);
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.get(path, params, authHeader);
         String disposableCacheKey = getDisposableCacheKey(path, null, authHeader,  params, null);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
     }
 
+    public void get(String path, Map<String, String> params, String authHeader, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
+        if (mCurrentServices == null) {
+            callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
+            return;
+        }
+
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.get(path, params, authHeader);
+        String disposableCacheKey = getDisposableCacheKey(path, authHeader, null,  params, null);
+        doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+
+    //其他
     public void uploadPhotoSet(String path, String header, JSONObject bodyJson, int tagHash, boolean onUiCallBack, HttpCallBack<T> callback) {
         Log.d(TAG, "uploadPhotoSet()");
         if (mCurrentServices == null) {
@@ -323,29 +414,23 @@ public class HttpClient<T> implements GenericLifecycleObserver {
      * @param params
      * @return
      */
-    private String getDisposableCacheKey(String path, String strHeader, Map<String, String> mapHeader, Map<String, String> params, JSONObject bodyJson) {
+    private String getDisposableCacheKey(String path, String strHeader, Map<String, String> mapHeader, Map<String, String> params, Object bodyObject) {
         StringBuffer keyBuffer = new StringBuffer("");
         if (!TextUtils.isEmpty(path)) {
-            keyBuffer.append(path).append(":");
+            keyBuffer.append(path);
         }
 
         if (!TextUtils.isEmpty(strHeader)) {
-            keyBuffer.append(strHeader).append(":");
+            keyBuffer.append(strHeader);
         }
         if (mapHeader != null && mapHeader.size() > 0) {
-            Set<Map.Entry<String, String>> entries = mapHeader.entrySet();
-            for (Map.Entry<String, String> entry : entries) {
-                keyBuffer.append(entry.getKey()).append("_").append(entry.getValue()).append("_");
-            }
+            keyBuffer.append(mapHeader.toString());
         }
         if (params != null && params.size() > 0) {
-            Set<Map.Entry<String, String>> entries = params.entrySet();
-            for (Map.Entry<String, String> entry : entries) {
-                keyBuffer.append(entry.getKey()).append("_").append(entry.getValue()).append("_");
-            }
+            keyBuffer.append(params.toString());
         }
-        if (bodyJson != null) {
-            keyBuffer.append(bodyJson.toString());
+        if (bodyObject != null) {
+            keyBuffer.append(bodyObject.toString());
         }
 
         return keyBuffer.toString();
