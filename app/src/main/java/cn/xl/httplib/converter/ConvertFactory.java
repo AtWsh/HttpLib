@@ -1,4 +1,4 @@
-package cn.xl.network.http;
+package cn.xl.httplib.converter;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -16,29 +16,33 @@ import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 
-final class ConvertFactory extends Converter.Factory {
+/**
+ * author: wenshenghui
+ * created on: 2018/8/3 17:49
+ * description:
+ */
+public class ConvertFactory extends Converter.Factory {
 
     private Gson gson;
 
-    ConvertFactory(Gson g) {
+    public ConvertFactory(Gson g) {
         gson = g;
     }
 
     @Override
     public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
-        return new ToStringConverter();
+        return new ConvertFactory.ToStringConverter();
     }
 
     @Override
     public Converter<?, RequestBody> requestBodyConverter(Type type, Annotation[] parameterAnnotations,
                                                           Annotation[] methodAnnotations, Retrofit retrofit) {
-        return new RequestConverter();
+        return new ConvertFactory.RequestConverter();
     }
 
     private final class RequestConverter implements Converter<Object, RequestBody> {
         @Override
         public RequestBody convert(Object o) throws IOException {
-            Log.i("xxx", String.format("request convert: %s", o.getClass().getSimpleName()));
             if (o instanceof String) {
                 return RequestBody.create(HttpConstants.sJsonType, (String) o);
             } else if (o instanceof RequestBody) {
@@ -52,17 +56,13 @@ final class ConvertFactory extends Converter.Factory {
     private static final class ToStringConverter implements Converter<ResponseBody, String> {
         @Override
         public String convert(@NonNull ResponseBody value) {
-            MediaType type = value.contentType();
-            Log.i("xxx", "response convert: " + type);
             try {
                 String data = value.string();
                 value.close();
                 return data;
             } catch (IOException e) {
-                Log.e("xxx", "convert", e);
                 return "";
             }
         }
     }
-
 }
