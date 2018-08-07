@@ -358,6 +358,7 @@ public final class Http implements GenericLifecycleObserver {
                 if (code == 200) {
                     String data = response.body();
                     if (data != null) {
+                        Log.d("wsh_log", "data = " + data);
                         Class<T> cls = getParameterizedTypeClass(callback);
                         T t = gson.fromJson(data, cls);
                         if (t != null) {

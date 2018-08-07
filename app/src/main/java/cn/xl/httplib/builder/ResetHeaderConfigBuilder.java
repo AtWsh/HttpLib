@@ -28,10 +28,10 @@ public abstract class ResetHeaderConfigBuilder<T> extends CommonBuilder<T> {
     @Override
     protected HttpClient getHttpClient() {
         if (mDefaultHeaderConfig == null) {
-            return HttpClient.getInstance().init(getUrl());
+            return HttpClient.getInstance().init(getBaseUrl());
         }
 
-        return HttpClient.getInstance().init(getUrl(), mDefaultHeaderConfig);
+        return HttpClient.getInstance().init(getBaseUrl(), mDefaultHeaderConfig);
     }
 
 }

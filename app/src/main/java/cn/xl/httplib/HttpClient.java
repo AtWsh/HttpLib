@@ -575,7 +575,7 @@ public class HttpClient<T> implements GenericLifecycleObserver {
         if (tag == null) return;
         List<Pair<Integer, Disposable>> disposableList;
         disposableList = mDisposableCache.get(tag.hashCode());
-        if (disposableList != null && disposableList.size() > 0) {
+        if (disposableList != null) {
             for (Pair<Integer, Disposable> pair : disposableList) {
                 pair.second.dispose();
             }

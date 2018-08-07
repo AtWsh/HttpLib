@@ -24,65 +24,65 @@ import retrofit2.http.Url;
 public interface HttpServices {
     /* common interface */
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> postWithParamsMap(@Path("path") String path, @QueryMap Map<String, String> params);
+    @POST
+    Observable<retrofit2.Response<String>> postWithParamsMap(@Url String path, @QueryMap Map<String, String> params);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @Body Object requestBody);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @Body Object requestBody);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @Header("Authorization") String header);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @Header("Authorization") String header);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> postWithHeaderMap(@Path("path") String path, @HeaderMap Map<String, String> headers);
+    @POST
+    Observable<retrofit2.Response<String>> postWithHeaderMap(@Url String path, @HeaderMap Map<String, String> headers);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @QueryMap Map<String, String> params, @Body Object requestBody);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @QueryMap Map<String, String> params, @Body Object requestBody);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @QueryMap Map<String, String> params, @Header("Authorization") String header);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @QueryMap Map<String, String> params, @Header("Authorization") String header);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @QueryMap Map<String, String> params, @HeaderMap Map<String, String> headers);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @QueryMap Map<String, String> params, @HeaderMap Map<String, String> headers);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @Body Object requestBody, @Header("Authorization") String header);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @Body Object requestBody, @Header("Authorization") String header);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @Body Object requestBody, @HeaderMap Map<String, String> headers);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @Body Object requestBody, @HeaderMap Map<String, String> headers);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @QueryMap Map<String, String> params, @Body Object requestBody, @Header("Authorization") String header);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @QueryMap Map<String, String> params, @Body Object requestBody, @Header("Authorization") String header);
 
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> post(@Path("path") String path, @QueryMap Map<String, String> params, @Body Object requestBody, @HeaderMap Map<String, String> headers);
+    @POST
+    Observable<retrofit2.Response<String>> post(@Url String path, @QueryMap Map<String, String> params, @Body Object requestBody, @HeaderMap Map<String, String> headers);
 
 
     //get
-    @GET("orders/{path}")
-    Observable<retrofit2.Response<String>> get(@Path("path") String path);
+    @GET
+    Observable<retrofit2.Response<String>> get(@Url String path);
 
-    @GET("{path}")
-    Observable<retrofit2.Response<String>> getWithParamsMap(@Path("path") String path, @QueryMap Map<String, String> params);
+    @GET
+    Observable<retrofit2.Response<String>> getWithParamsMap(@Url String path, @QueryMap Map<String, String> params);
 
-    @GET("{path}")
-    Observable<retrofit2.Response<String>> get(@Path("path") String path, @Header("Authorization") String header);
+    @GET
+    Observable<retrofit2.Response<String>> get(@Url String path, @Header("Authorization") String header);
 
-    @GET("{path}")
-    Observable<retrofit2.Response<String>> getWithHeaderMap(@Path("path") String path, @HeaderMap Map<String, String> header);
+    @GET
+    Observable<retrofit2.Response<String>> getWithHeaderMap(@Url String path, @HeaderMap Map<String, String> header);
 
-    @GET("{path}")
-    Observable<retrofit2.Response<String>> get(@Path("path") String path, @QueryMap Map<String, String> params, @Header("Authorization") String header);
+    @GET
+    Observable<retrofit2.Response<String>> get(@Url String path, @QueryMap Map<String, String> params, @Header("Authorization") String header);
 
-    @GET("{path}")
-    Observable<retrofit2.Response<String>> get(@Path("path") String path, @QueryMap Map<String, String> params, @HeaderMap Map<String, String> header);
+    @GET
+    Observable<retrofit2.Response<String>> get(@Url String path, @QueryMap Map<String, String> params, @HeaderMap Map<String, String> header);
 
 
-    //上传
-    @POST("{path}")
+    //其他
+    @POST
     Observable<retrofit2.Response<String>> uploadFile(@Path("path") String path,  @Body MultipartBody multipartBody);
 
     @GET("{path}/appphotos")

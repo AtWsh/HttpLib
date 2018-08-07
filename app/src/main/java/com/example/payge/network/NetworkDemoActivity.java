@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PagerSnapHelper;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,11 +19,15 @@ import com.bumptech.glide.Glide;
 import com.example.payge.network.controller.NetworkDemoController;
 import com.example.payge.network.model.Banner;
 import com.example.payge.network.model.ZhiHuStories;
+import com.example.payge.network.response.ModelUserLogin;
 import com.example.payge.network.response.StoriesResponse;
+import com.example.payge.network.response.WeatherResponse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import cn.xl.httplib.HttpCallBack;
 import cn.xl.network.http.Http;
 
 public class NetworkDemoActivity extends AppCompatActivity implements View.OnClickListener, Runnable {
@@ -57,15 +62,10 @@ public class NetworkDemoActivity extends AppCompatActivity implements View.OnCli
 
         commonAdapter = new CommonAdapter();
 
-        controller.login();
-        controller.download();
-    }
-
-    @Override
-    public void run() {
-        controller.getStoryList(new Http.Callback<StoriesResponse>() {
+        /*controller.getStoryList(new Http.Callback<StoriesResponse>() {
             @Override
             protected void onSuccess(StoriesResponse response) {
+                Log.d("wsh_log", "onSuccess: " + response.stories.toString());
                 commonAdapter.dataSet.addAll(response.stories);
                 bannerAdapter.banners.addAll(response.top_stories);
                 dataView.setAdapter(bannerAdapter);
@@ -73,9 +73,55 @@ public class NetworkDemoActivity extends AppCompatActivity implements View.OnCli
 
             @Override
             protected void onError(int errorCode, String msg) {
-
+                Log.d("wsh_log", "msg: " + msg);
             }
-        });
+        });*/
+        //测试普通Get请求，只传url
+       /*new StoriesResponse.Builder().setTag(this).build(new HttpCallBack<StoriesResponse>() {
+           @Override
+           public void onResult(int stateCode, StoriesResponse response) {
+               Log.d("wsh_log", "stateCode = " + stateCode);
+               commonAdapter.dataSet.addAll(response.stories);
+               bannerAdapter.banners.addAll(response.top_stories);
+               dataView.setAdapter(bannerAdapter);
+           }
+       });*/
+
+        //测试Get请求，只传url + params
+        //location=嘉兴&output=json&ak=5slgyqGDENN7Sy7pw29IUvrZ
+       /* HashMap<String, String> map = new HashMap<>();
+        map.put("location","嘉兴");
+        map.put("output","json");
+        map.put("ak","5slgyqGDENN7Sy7pw29IUvrZ");
+       new WeatherResponse.Builder().setTag(this)
+               .addParamsMap(map)
+               .build(new HttpCallBack<WeatherResponse>() {
+           @Override
+           public void onResult(int stateCode, WeatherResponse response) {
+               Log.d("wsh_log", "stateCode = " + stateCode);
+           }
+       });*/
+
+        //controller.login();
+        //controller.download();
+    }
+
+    @Override
+    public void run() {
+        /*controller.getStoryList(new Http.Callback<StoriesResponse>() {
+            @Override
+            protected void onSuccess(StoriesResponse response) {
+                Log.d("wsh_log", "onSuccess: " + response.stories.toString());
+                commonAdapter.dataSet.addAll(response.stories);
+                bannerAdapter.banners.addAll(response.top_stories);
+                dataView.setAdapter(bannerAdapter);
+            }
+
+            @Override
+            protected void onError(int errorCode, String msg) {
+                Log.d("wsh_log", "msg: " + msg);
+            }
+        });*/
     }
 
     @Override
@@ -85,11 +131,58 @@ public class NetworkDemoActivity extends AppCompatActivity implements View.OnCli
             layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
             helper.attachToRecyclerView(null);
             dataView.setAdapter(commonAdapter);
+          /*  new StoriesResponse.Builder().setTag(this).build(new HttpCallBack<StoriesResponse>() {
+                @Override
+                public void onResult(int stateCode, StoriesResponse storiesResponse) {
+                    Log.d("wsh_log", "stateCode = " + stateCode);
+                }
+            });*/
+
+            HashMap<String, String> map = new HashMap<>();
+            map.put("location","嘉兴");
+            map.put("output","json");
+            map.put("ak","5slgyqGDENN7Sy7pw29IUvrZ");
+            new WeatherResponse.Builder().setTag(this)
+                    .addParamsMap(map)
+                    .build(new HttpCallBack<WeatherResponse>() {
+                        @Override
+                        public void onResult(int stateCode, WeatherResponse response) {
+                            Log.d("wsh_log", "stateCode = " + stateCode);
+                        }
+                    });
+
+
+           /* HashMap<String, String> map = new HashMap<String, String>();
+            map.put("account", "123");
+            map.put("password", "123");
+            map.put("deviceNumber", "123");
+            new ModelUserLogin.Builder().addBodyMap(map).build(new HttpCallBack<ModelUserLogin>() {
+                @Override
+                public void onResult(int stateCode, ModelUserLogin modelUserLogin) {
+                    Log.d("wsh_log", "stateCode = " + stateCode);
+                }
+            });*/
+
         } else {
             httpView.setText("list");
             layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
             helper.attachToRecyclerView(dataView);
             dataView.setAdapter(bannerAdapter);
+
+             /*controller.getStoryList(new Http.Callback<StoriesResponse>() {
+                @Override
+                protected void onSuccess(StoriesResponse response) {
+                    Log.d("wsh_log", "onSuccess: " + response.stories.toString());
+                    commonAdapter.dataSet.addAll(response.stories);
+                    bannerAdapter.banners.addAll(response.top_stories);
+                    dataView.setAdapter(bannerAdapter);
+                }
+
+                @Override
+                protected void onError(int errorCode, String msg) {
+                    Log.d("wsh_log", "msg: " + msg);
+                }
+            });*/
         }
         showList = !showList;
     }

@@ -10,7 +10,7 @@ public final class App extends Application {
     public void onCreate() {
         super.onCreate();
         Config config = Config.create()
-        .baseUrl("https://news-at.zhihu.com/")
+        .baseUrl("http://api.map.baidu.com/")
         .addHeader("Content-Type", "application/json")
         .addHeader("FrontType", "scp-mobile-patrol-ui")
         .addHeader("terminalType", "android")
@@ -18,5 +18,7 @@ public final class App extends Application {
         .addHeader("traceId", String.format("%s0201%s00000000000000000000000000000000",
                 System.currentTimeMillis(), String.valueOf((int) ((Math.random()*9+1)*Math.pow(10, 6)))));
         Http.init(this, config);
+
+        //http://api.map.baidu.com/telematics/v3/weather?location=嘉兴&output=json&ak=5slgyqGDENN7Sy7pw29IUvrZ
     }
 }

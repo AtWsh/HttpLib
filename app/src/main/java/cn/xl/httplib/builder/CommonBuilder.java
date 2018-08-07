@@ -27,7 +27,7 @@ public abstract class CommonBuilder<T> {
 
 
     protected abstract String getPath();
-    protected abstract String getUrl();
+    protected abstract String getBaseUrl();
     protected abstract @HttpMethod.IMethed String getMethod();
     private JSONObject mJsonObject;
     private Object mBodyObj;
@@ -109,17 +109,6 @@ public abstract class CommonBuilder<T> {
     }
 
     /**
-     *  Function: getParams()
-     *  NOTE: 该方法可以被重写。如果不重写，则默认使用addJsonQuery()调用时设置的参数。如果重写，则是
-     *      添加通用参数，需要创建新的Map<String, String>，在添加通用参数的同时，将mHttpParams中的参数
-     *      也填写进去，切不可直接在mHttpParams中直接添加通用参数并返回。
-     *
-     **/
-    protected Map<String, String> getParams(){
-        return mHttpParams;
-    }
-
-    /**
      * 创建一个请求，回调默认在主线程
      * @param callback
      */
@@ -133,10 +122,21 @@ public abstract class CommonBuilder<T> {
      * @param callback
      */
     final public void build(boolean onUiCallBack, HttpCallBack<T> callback){
-        fromJson(onUiCallBack, callback);
+        request(onUiCallBack, callback);
     }
 
-    protected void fromJson(boolean onUiCallBack, HttpCallBack<T> callback){
+    /**
+     *  Function: getParams()
+     *  NOTE: 该方法可以被重写。如果不重写，则默认使用addJsonQuery()调用时设置的参数。如果重写，则是
+     *      添加通用参数，需要创建新的Map<String, String>，在添加通用参数的同时，将mHttpParams中的参数
+     *      也填写进去，切不可直接在mHttpParams中直接添加通用参数并返回。
+     *
+     **/
+    protected Map<String, String> getParams(){
+        return mHttpParams;
+    }
+
+    protected void request(boolean onUiCallBack, HttpCallBack<T> callback){
 
         HttpClient client = getHttpClient();
         if (client == null) {
@@ -203,22 +203,28 @@ public abstract class CommonBuilder<T> {
         }
 
         if (paramsEmpty && strHeaderEmpty && mapHeaderEmpty) {
+            //验证Ok
             client.get(getPath(), getTagHash(), onUiCallBack, callback);
         }else if (!paramsEmpty && strHeaderEmpty && mapHeaderEmpty) {
+            //验证Ok
             client.getWithParamsMap(getPath(), getParams(), getTagHash(), onUiCallBack, callback);
         }else if(paramsEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            //关于Header的设置不验证，目前没有测试条件
             client.get(getPath(), mStrHeader, getTagHash(), onUiCallBack, callback);
         }else if(paramsEmpty && strHeaderEmpty && !mapHeaderEmpty){
+            //关于Header的设置不验证，目前没有测试条件
             client.getWithHeaderMap(getPath(), mHttpHeader, getTagHash(), onUiCallBack, callback);
         }else if(!paramsEmpty && !strHeaderEmpty && mapHeaderEmpty){
+            //关于Header的设置不验证，目前没有测试条件
             client.post(getPath(), getParams(), mStrHeader, getTagHash(), onUiCallBack, callback);
         }else if(!paramsEmpty && strHeaderEmpty && !mapHeaderEmpty){
+            //关于Header的设置不验证，目前没有测试条件
             client.post(getPath(), getParams(), mHttpHeader, getTagHash(), onUiCallBack, callback);
         }
     }
 
     protected HttpClient getHttpClient() {
-        return HttpClient.getInstance().init(getUrl());
+        return HttpClient.getInstance().init(getBaseUrl());
     }
 
     protected int getTagHash() {

@@ -38,8 +38,11 @@ public class HttpHeaderConfig {
     private void initHeaderMap() {
         mHeaders.put("Content-Type", "application/json");
         mHeaders.put("terminalType", "android");
+        mHeaders.put("FrontType", "scp-mobile-patrol-ui");
         mHeaders.put("versionCode", BuildConfig.VERSION_CODE + "");
         mHeaders.put("versionName", BuildConfig.VERSION_NAME);
+        mHeaders.put("traceId", String.format("%s0201%s00000000000000000000000000000000",
+                System.currentTimeMillis(), String.valueOf((int) ((Math.random()*9+1)*Math.pow(10, 6)))));
     }
 
     public HttpHeaderConfig addHeader(String name, String value) {
@@ -98,19 +101,11 @@ public class HttpHeaderConfig {
 
     @Override
     public String toString() {
-        StringBuffer mapBuffer = new StringBuffer("");
-        if (mHeaders != null && mHeaders.size() > 0) {
-            Set<Map.Entry<String, String>> entrySet = mHeaders.entrySet();
-            for (Map.Entry<String, String> stringStringEntry : entrySet) {
-                mapBuffer.append(stringStringEntry.getKey()).append("_").append(stringStringEntry.getValue()).append("_");
-            }
-        }
-
         return "HttpHeaderConfig{" +
                 "mUserConnectTimeout='" + mUserConnectTimeout + '\'' +
                 ", mUserReadTimeout='" + mUserReadTimeout + '\'' +
                 ", mUserWriteTimeout='" + mUserWriteTimeout + '\'' +
-                mapBuffer.toString()+
+                mHeaders.toString()+
                 '}';
     }
 }
