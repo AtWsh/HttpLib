@@ -31,6 +31,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
@@ -71,8 +72,8 @@ public class HttpClient<T> implements GenericLifecycleObserver {
      * @param url
      * @return
      */
-    public HttpClient init(String url) {
-        return init(url, null);
+    public HttpClient init(String url, HttpCallBack<T> callBack) {
+        return init(url, null, callBack);
     }
 
     /**
@@ -80,7 +81,7 @@ public class HttpClient<T> implements GenericLifecycleObserver {
      * @param headerConfig
      * @return
      */
-    public HttpClient init(String url, HttpHeaderConfig headerConfig) {
+    public HttpClient init(String url, HttpHeaderConfig headerConfig, HttpCallBack<T> callback) {
 
         //获取缓存Retrofit
         if (TextUtils.isEmpty(url)) {
@@ -94,7 +95,7 @@ public class HttpClient<T> implements GenericLifecycleObserver {
             return this;
         }
 
-        OkHttpClient client = getOkHttpClient(headerConfig);
+        OkHttpClient client = getOkHttpClient(headerConfig, callback);
         try {
             mCurrentRetrofit = new Retrofit.Builder()
                     .client(client)
@@ -128,7 +129,7 @@ public class HttpClient<T> implements GenericLifecycleObserver {
         return (url + headerConfig.toString()).hashCode();
     }
 
-    private OkHttpClient getOkHttpClient(HttpHeaderConfig headerConfig) {
+    private OkHttpClient getOkHttpClient(HttpHeaderConfig headerConfig, final HttpCallBack<T> callback) {
         if (headerConfig == null) {
             headerConfig = HttpHeaderConfig.create();
 
@@ -141,14 +142,22 @@ public class HttpClient<T> implements GenericLifecycleObserver {
                 .addInterceptor(new Interceptor() {
                     @Override
                     public okhttp3.Response intercept(Chain chain) throws IOException {
-                        okhttp3.Request.Builder builder = chain.request().newBuilder();
-                        if (!config.getHeaders().isEmpty()) {
-                            Set<Map.Entry<String, String>> entrySet = config.getHeaders().entrySet();
-                            for (Map.Entry<String, String> entry : entrySet) {
-                                builder.addHeader(entry.getKey(), entry.getValue());
+                        okhttp3.Request okHttpRequest = chain.request();
+                        okhttp3.RequestBody body = okHttpRequest.body();
+                        if (body != null) {
+                            Log.i(TAG, "upload intercept: " + body.getClass().getSimpleName());
+                            ProgressRequestBody prb = new ProgressRequestBody(body);
+                            prb.setProgressListener(callback);
+                            Request.Builder builder = okHttpRequest.newBuilder().method(okHttpRequest.method(), prb);
+                            if (!config.getHeaders().isEmpty()) {
+                                Set<Map.Entry<String, String>> entrySet = config.getHeaders().entrySet();
+                                for (Map.Entry<String, String> entry : entrySet) {
+                                    builder.addHeader(entry.getKey(), entry.getValue());
+                                }
                             }
+                            okHttpRequest = builder.build();
                         }
-                        return chain.proceed(builder.build());
+                        return chain.proceed(okHttpRequest);
                     }
                 }).build();
         return client;
@@ -380,6 +389,14 @@ public class HttpClient<T> implements GenericLifecycleObserver {
         Observable<retrofit2.Response<String>> observable = mCurrentServices.get(path, params, authHeader);
         String disposableCacheKey = getDisposableCacheKey(path, authHeader, null,  params, null);
         doSubscribe(disposableCacheKey, tagHash, observable, onUiCallBack, callback);
+    }
+
+    //上传
+    public void upload(String path, Map<String, String> mapHeader, Map<String, RequestBody> partMap, int tagHash, final HttpCallBack<T> callback) {
+
+        Observable<retrofit2.Response<String>> observable = mCurrentServices.upload(path, mapHeader, partMap);
+        String disposableCacheKey = getDisposableCacheKey(path, null, mapHeader,  null, partMap);
+        doSubscribe(disposableCacheKey, tagHash, observable, true, callback);
     }
 
 

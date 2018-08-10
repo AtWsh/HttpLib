@@ -148,6 +148,7 @@ public class NetworkDemoActivity extends AppCompatActivity implements View.OnCli
                         @Override
                         public void onResult(int stateCode, WeatherResponse response) {
                             Log.d("wsh_log", "stateCode = " + stateCode);
+                            //todo stateCode == HttpStateCode.RESULT_OK 表示请求成功  然后处理逻辑
                         }
                     });
 

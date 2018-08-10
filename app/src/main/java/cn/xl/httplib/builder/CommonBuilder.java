@@ -5,12 +5,16 @@ import android.util.Log;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Map;
 
 import cn.xl.httplib.HttpCallBack;
 import cn.xl.httplib.HttpClient;
 import cn.xl.httplib.HttpMethod;
 import cn.xl.httplib.HttpStateCode;
+import cn.xl.httplib.ProgressRequestBody;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 
 /**
  * author: wenshenghui
@@ -109,6 +113,17 @@ public abstract class CommonBuilder<T> {
     }
 
     /**
+     *  Function: getParams()
+     *  NOTE: 该方法可以被重写。如果不重写，则默认使用addJsonQuery()调用时设置的参数。如果重写，则是
+     *      添加通用参数，需要创建新的Map<String, String>，在添加通用参数的同时，将mHttpParams中的参数
+     *      也填写进去，切不可直接在mHttpParams中直接添加通用参数并返回。
+     *
+     **/
+    protected Map<String, String> getParams(){
+        return mHttpParams;
+    }
+
+    /**
      * 创建一个请求，回调默认在主线程
      * @param callback
      */
@@ -125,20 +140,9 @@ public abstract class CommonBuilder<T> {
         request(onUiCallBack, callback);
     }
 
-    /**
-     *  Function: getParams()
-     *  NOTE: 该方法可以被重写。如果不重写，则默认使用addJsonQuery()调用时设置的参数。如果重写，则是
-     *      添加通用参数，需要创建新的Map<String, String>，在添加通用参数的同时，将mHttpParams中的参数
-     *      也填写进去，切不可直接在mHttpParams中直接添加通用参数并返回。
-     *
-     **/
-    protected Map<String, String> getParams(){
-        return mHttpParams;
-    }
-
     protected void request(boolean onUiCallBack, HttpCallBack<T> callback){
 
-        HttpClient client = getHttpClient();
+        HttpClient client = getHttpClient(callback);
         if (client == null) {
             callback.onResult(HttpStateCode.ERROR_HTTPCLIENT_CREATE_FAILED, null);
             return;
@@ -223,8 +227,8 @@ public abstract class CommonBuilder<T> {
         }
     }
 
-    protected HttpClient getHttpClient() {
-        return HttpClient.getInstance().init(getBaseUrl());
+    protected HttpClient getHttpClient(HttpCallBack<T> callBack) {
+        return HttpClient.getInstance().init(getBaseUrl(), callBack);
     }
 
     protected int getTagHash() {

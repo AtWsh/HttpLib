@@ -26,7 +26,7 @@ public class StoriesResponse {
         }
 
         @Override
-        protected String getMethod() {
+        protected @HttpMethod.IMethed String getMethod() {
             return HttpMethod.GET;
         }
     }

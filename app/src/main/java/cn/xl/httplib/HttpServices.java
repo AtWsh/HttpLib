@@ -12,6 +12,7 @@ import retrofit2.http.HeaderMap;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.PartMap;
 import retrofit2.http.Path;
 import retrofit2.http.QueryMap;
 import retrofit2.http.Url;
@@ -80,19 +81,25 @@ public interface HttpServices {
     @GET
     Observable<retrofit2.Response<String>> get(@Url String path, @QueryMap Map<String, String> params, @HeaderMap Map<String, String> header);
 
+    //上传
+    @POST
+    Observable<retrofit2.Response<String>> upload(
+            @Url String url,
+            @HeaderMap Map<String, String> headers,
+            @PartMap Map<String, RequestBody> partMap
+    );
+
+    @POST
+    Observable<retrofit2.Response<String>> upload(
+            @Url String url,
+            @HeaderMap Map<String, String> headers,
+            @Body MultipartBody multipartBody
+    );
+
 
     //其他
-    @POST
-    Observable<retrofit2.Response<String>> uploadFile(@Path("path") String path,  @Body MultipartBody multipartBody);
-
     @GET("{path}/appphotos")
     Observable<retrofit2.Response<String>> getPhotos(@Path("path") String path, @Header("Authorization") String header, @QueryMap Map<String, String> params);
-
-    @POST("{path}/faces")
-    Observable<retrofit2.Response<String>> uploadFacesFile(@Path("path") String path,  @Header("Authorization") String header, @Body MultipartBody multipartBody);
-
-    @POST("{path}")
-    Observable<retrofit2.Response<String>> uploadFile(@Path("path") String path,  @Header("Authorization") String header, @Body MultipartBody multipartBody);
 
     /* DEFINITE_INTERFACE_MSJK_UPLOAD_PHOTO_SET */
     @POST("{path}/appphotos")
